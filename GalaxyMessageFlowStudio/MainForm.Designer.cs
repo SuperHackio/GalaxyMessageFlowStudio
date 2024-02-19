@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             NewToolStripMenuItem = new ToolStripMenuItem();
@@ -201,6 +202,7 @@
             Controls.Add(FlowChartSTNodeEditor);
             Controls.Add(STNodeUISplitContainer);
             Controls.Add(menuStrip1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
             MinimumSize = new Size(1480, 720);
             Name = "MainForm";

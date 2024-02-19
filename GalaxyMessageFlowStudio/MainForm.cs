@@ -92,6 +92,11 @@ public partial class MainForm : Form
         List<MSBF.NodeBase> TemporaryNodes = [];
         Flows.GetFlattenedNodes(ref TemporaryNodes);
 
+        if (CurrentMSBT.Messages.Count == 0)
+        {
+            MessageBox.Show("The MSBT has no messages to use. All Message Nodes will be reset to their default state.");
+        }
+
         for (int i = 0; i < TemporaryNodes.Count; i++)
         {
             if (TemporaryNodes[i] is MSBF.EntryNode EN)
@@ -107,11 +112,18 @@ public partial class MainForm : Form
                 }
                 else
                 {
-                    if (MN.MessageIndex < 0 || MN.MessageIndex > CurrentMSBT.Count)
+                    if (CurrentMSBT.Messages.Count == 0)
                     {
-                        MN.MessageIndex = 0;
+                        FlowChartSTNodeEditor.Nodes.Add(new MessageNode(null, MN));
                     }
-                    FlowChartSTNodeEditor.Nodes.Add(new MessageNode(CurrentMSBT.Messages[MN.MessageIndex], MN));
+                    else
+                    {
+                        if (MN.MessageIndex < 0 || MN.MessageIndex > CurrentMSBT.Count)
+                        {
+                            MN.MessageIndex = 0;
+                        }
+                        FlowChartSTNodeEditor.Nodes.Add(new MessageNode(CurrentMSBT.Messages[MN.MessageIndex], MN));
+                    }
                 }
             }
             else if (TemporaryNodes[i] is MSBF.BranchNode BN)
@@ -210,7 +222,7 @@ public partial class MainForm : Form
         if (Archive.Root is null)
             throw new IOException("Missing Archive Root!");
 
-        string SelectedMessages = Archive.Root.Name; //TODO: Make a window that lets you pick one
+        string SelectedMessages = MSB_PairName; //TODO: Make a window that lets you pick one
         bool fail = false;
         TextInputForm tif = new("File Select", "Type the filename", (string s) => SelectedMessages = s, (string x) => fail = true, SelectedMessages);
         tif.ShowDialog();
@@ -275,13 +287,24 @@ public partial class MainForm : Form
 
             if (Current is MessageNode STMN)
             {
-                MSBT.Message? NodeMessage = messages.FindByLabel(STMN.GetMessage().Label);
-                if (NodeMessage is null)
+                ushort MsgIndx = 0;
+                var msg = STMN.GetMessage();
+                if (msg is null)
                 {
-                    //Handle null
-                    return null;
+                    ExeSaveWarning($"A Message Node has no message assigned to it. Label ID \"0\" has been Automatically assigned");
                 }
-                NewFlatNodes.Add(new MSBF.MessageNode() { MessageIndex = messages.IndexOf(NodeMessage) });
+                else
+                {
+                    MSBT.Message? NodeMessage = messages.FindByLabel(msg.Label);
+                    if (NodeMessage is null)
+                    {
+                        ExeSaveWarning($"Could not find MSBT Label \"{msg.Label}\". Label ID \"0\" has been Automatically assigned");
+                    }
+                    else
+                        MsgIndx = messages.IndexOf(NodeMessage);
+                }
+                
+                NewFlatNodes.Add(new MSBF.MessageNode() { MessageIndex = MsgIndx });
                 continue;
             }
 
@@ -347,6 +370,11 @@ public partial class MainForm : Form
                 return (ushort)NodesWithoutEnds.IndexOf(NextNode);
             }
             return 0xFFFF;
+        }
+    
+        void ExeSaveWarning(string Message)
+        {
+
         }
     }
 
