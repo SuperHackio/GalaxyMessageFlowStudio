@@ -5,6 +5,8 @@ A MSBF editor for Super Mario Galaxy 2
 
 You will need the .NET 8.0 runtime to be able to use this program.
 
+> *Note: This program does not support High DPI modes.*
+
 ## How to use
 Using this program is easy.<br/>Once you have it open, go to File > Open, and select your Message Archive. You will then be prompted to input the file name. By default, the Archive name is used, and if you are just editing NPC text inside of a zone, then you can just click OK and it will load the MSBT/MSBF. (If you do this to a file that does not have an MSBF, a new one will be created for you)
 
