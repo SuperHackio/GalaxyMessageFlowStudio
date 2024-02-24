@@ -17,6 +17,7 @@ namespace GalaxyMessageFlowStudio
         public TextInputForm(string Title, string Message, Action<string> AcceptCallback, Action<string> CancelCallback, string StartText = "")
         {
             InitializeComponent();
+            CenterToParent();
             Text = Title;
             MessageLabel.Text = Message;
             InputTextBox.Text = StartText;

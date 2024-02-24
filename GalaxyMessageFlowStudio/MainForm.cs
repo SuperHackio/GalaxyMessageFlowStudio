@@ -5,6 +5,7 @@ using Hack.io.RARC;
 using Hack.io.Utility;
 using Hack.io.YAZ0;
 using ST.Library.UI.NodeEditor;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using static GalaxyMessageFlowStudio.Nodes.FlowNode;
 
@@ -73,12 +74,16 @@ public partial class MainForm : Form
             RARC.File FoundMSBT = (RARC.File)(Archive[SelectedMessages + ".msbt"] ?? throw new InvalidOperationException());
             CurrentMSBT.Load((MemoryStream)FoundMSBT);
         }
+        else
+            MessageBox.Show("The archive does not contain " + MSB_PairName + ".msbt");
 
         if (Archive.ItemExists(SelectedMessages + ".msbf"))
         {
             RARC.File FoundMSBF = (RARC.File)(Archive[SelectedMessages + ".msbf"] ?? throw new InvalidOperationException());
             OpenMSBF((MemoryStream)FoundMSBF);
         }
+        else
+            MessageBox.Show("The archive does not contain " + MSB_PairName + ".msbf");
 
 
         Filename = ArchivePath;
@@ -160,8 +165,24 @@ public partial class MainForm : Form
                     break;
                 case MSBF.NodeType.BRANCH:
                     MSBF.BranchNode BN = (MSBF.BranchNode)TemporaryNodes[i];
-                    CurrentNode.Connect(NodeOptions.TRUENODE, FlowChartSTNodeEditor.Nodes[TemporaryNodes.IndexOf(BN.NextNode)], NodeOptions.PREVNODE);
-                    CurrentNode.Connect(NodeOptions.FALSENODE, FlowChartSTNodeEditor.Nodes[TemporaryNodes.IndexOf(BN.NextNodeElse)], NodeOptions.PREVNODE);
+                    if (BN.NextNode is null)
+                    {
+                        //Implement End nodes
+                        EndFlowNode EFN = new();
+                        FlowChartSTNodeEditor.Nodes.Add(EFN);
+                        CurrentNode.Connect(NodeOptions.TRUENODE, EFN, NodeOptions.PREVNODE);
+                    }
+                    else
+                        CurrentNode.Connect(NodeOptions.TRUENODE, FlowChartSTNodeEditor.Nodes[TemporaryNodes.IndexOf(BN.NextNode)], NodeOptions.PREVNODE);
+                    if (BN.NextNodeElse is null)
+                    {
+                        //Implement End nodes
+                        EndFlowNode EFN = new();
+                        FlowChartSTNodeEditor.Nodes.Add(EFN);
+                        CurrentNode.Connect(NodeOptions.FALSENODE, EFN, NodeOptions.PREVNODE);
+                    }
+                    else
+                        CurrentNode.Connect(NodeOptions.FALSENODE, FlowChartSTNodeEditor.Nodes[TemporaryNodes.IndexOf(BN.NextNodeElse)], NodeOptions.PREVNODE);
                     break;
                 case MSBF.NodeType.EVENT:
                     MSBF.EventNode EVN = (MSBF.EventNode)TemporaryNodes[i];
@@ -177,7 +198,15 @@ public partial class MainForm : Form
                     break;
                 case MSBF.NodeType.ENTRY:
                     MSBF.EntryNode EN = (MSBF.EntryNode)TemporaryNodes[i];
-                    CurrentNode.Connect(NodeOptions.NEXTNODE, FlowChartSTNodeEditor.Nodes[TemporaryNodes.IndexOf(EN.NextNode)], NodeOptions.PREVNODE);
+                    if (EN.NextNode is null)
+                    {
+                        //Implement End nodes
+                        EndFlowNode EFN = new();
+                        FlowChartSTNodeEditor.Nodes.Add(EFN);
+                        CurrentNode.Connect(NodeOptions.NEXTNODE, EFN, NodeOptions.PREVNODE);
+                    }
+                    else
+                        CurrentNode.Connect(NodeOptions.NEXTNODE, FlowChartSTNodeEditor.Nodes[TemporaryNodes.IndexOf(EN.NextNode)], NodeOptions.PREVNODE);
                     break;
                 default:
                     throw new Exception("Invalid node type!");
@@ -223,11 +252,15 @@ public partial class MainForm : Form
             throw new IOException("Missing Archive Root!");
 
         string SelectedMessages = MSB_PairName; //TODO: Make a window that lets you pick one
-        bool fail = false;
-        TextInputForm tif = new("File Select", "Type the filename", (string s) => SelectedMessages = s, (string x) => fail = true, SelectedMessages);
-        tif.ShowDialog();
-        if (fail)
-            return;
+        do
+        {
+            bool fail = false;
+            TextInputForm tif = new("File Select", "Type the filename", (string s) => SelectedMessages = s, (string x) => fail = true, SelectedMessages);
+            tif.ShowDialog();
+            if (fail)
+                return;
+        }
+        while (string.IsNullOrWhiteSpace(SelectedMessages));
 
         MSB_PairName = SelectedMessages;
 
@@ -245,6 +278,8 @@ public partial class MainForm : Form
             file.Load(MS);
             Archive[SelectedMessages + ".msbf"] = file;
         }
+        else
+            MessageBox.Show("No MSBF entries were written");
 
         FileUtil.SaveFile(ArchivePath, Archive.Save);
     }
@@ -303,7 +338,7 @@ public partial class MainForm : Form
                     else
                         MsgIndx = messages.IndexOf(NodeMessage);
                 }
-                
+
                 NewFlatNodes.Add(new MSBF.MessageNode() { MessageIndex = MsgIndx });
                 continue;
             }
@@ -342,9 +377,8 @@ public partial class MainForm : Form
             else
             {
                 ushort index = GetNextNodeIndex(CurrentSTNode);
-                if (index == 0xFFFF)
-                    continue;
-                CurrentMSBFNode.NextNode = NewFlatNodes[index];
+                if (index != 0xFFFF)
+                    CurrentMSBFNode.NextNode = NewFlatNodes[index];
             }
 
             if (CurrentMSBFNode is MSBF.EntryNode MEN)
@@ -371,7 +405,7 @@ public partial class MainForm : Form
             }
             return 0xFFFF;
         }
-    
+
         void ExeSaveWarning(string Message)
         {
 
@@ -517,6 +551,9 @@ public partial class MainForm : Form
 
     private void FlowChartSTNodeEditor_NodeAdded(object sender, STNodeEditorEventArgs e)
     {
+        if (e.Node is null)
+            return;
+
         e.Node.ContextMenuStrip = NodeContextMenuStrip;
         FlowChartSTNodeEditor.ShowAlert($"Added Node \"{e.Node.Title}\"", e.Node.ForeColor, e.Node.TitleColor);
 
@@ -530,6 +567,8 @@ public partial class MainForm : Form
 
     private void FlowChartSTNodeEditor_NodeRemoved(object sender, STNodeEditorEventArgs e)
     {
+        if (e.Node is null)
+            return;
         e.Node.ValueChanged -= Node_ValueChanged;
     }
 
@@ -576,12 +615,15 @@ public partial class MainForm : Form
             return;
 
         Filename = sfd.FileName;
-        //Create a new archive
-        RARC newArchive = new()
+        if (!File.Exists(sfd.FileName))
         {
-            Root = new RARC.Directory() { Name = Path.GetFileNameWithoutExtension(Filename) }
-        };
-        FileUtil.SaveFile(Filename, newArchive.Save);
+            //Create a new archive
+            RARC newArchive = new()
+            {
+                Root = new RARC.Directory() { Name = Path.GetFileNameWithoutExtension(Filename) }
+            };
+            FileUtil.SaveFile(Filename, newArchive.Save);
+        }
 
         Save(Filename);
     }
@@ -629,5 +671,15 @@ public partial class MainForm : Form
     private void Node_ValueChanged(object? sender, EventArgs e)
     {
         FlowSTNodePropertyGrid.Invalidate();
+    }
+
+    private void ProgramInstructionsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        Process.Start("https://github.com/SuperHackio/GalaxyMessageFlowStudio/blob/Master/README.md");
+    }
+
+    private void MSBFDocumentationToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        Process.Start("https://www.lumasworkshop.com/wiki/MSBF_(File_Format)");
     }
 }

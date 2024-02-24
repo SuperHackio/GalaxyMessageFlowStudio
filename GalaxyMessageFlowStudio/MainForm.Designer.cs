@@ -43,6 +43,9 @@
             FlowChartSTNodeEditor = new ST.Library.UI.NodeEditor.STNodeEditor();
             NodeContextMenuStrip = new ContextMenuStrip(components);
             DeleteNodeToolStripMenuItem = new ToolStripMenuItem();
+            helpToolStripMenuItem = new ToolStripMenuItem();
+            ProgramInstructionsToolStripMenuItem = new ToolStripMenuItem();
+            MSBFDocumentationToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)STNodeUISplitContainer).BeginInit();
             STNodeUISplitContainer.Panel1.SuspendLayout();
@@ -53,7 +56,7 @@
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, ReloadMSBTToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, ReloadMSBTToolStripMenuItem, helpToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1464, 24);
@@ -193,6 +196,27 @@
             DeleteNodeToolStripMenuItem.Text = "Delete Node";
             DeleteNodeToolStripMenuItem.Click += DeleteNodeToolStripMenuItem_Click;
             // 
+            // helpToolStripMenuItem
+            // 
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { ProgramInstructionsToolStripMenuItem, MSBFDocumentationToolStripMenuItem });
+            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            helpToolStripMenuItem.Size = new Size(44, 20);
+            helpToolStripMenuItem.Text = "Help";
+            // 
+            // ProgramInstructionsToolStripMenuItem
+            // 
+            ProgramInstructionsToolStripMenuItem.Name = "ProgramInstructionsToolStripMenuItem";
+            ProgramInstructionsToolStripMenuItem.Size = new Size(189, 22);
+            ProgramInstructionsToolStripMenuItem.Text = "Program Instructions";
+            ProgramInstructionsToolStripMenuItem.Click += ProgramInstructionsToolStripMenuItem_Click;
+            // 
+            // MSBFDocumentationToolStripMenuItem
+            // 
+            MSBFDocumentationToolStripMenuItem.Name = "MSBFDocumentationToolStripMenuItem";
+            MSBFDocumentationToolStripMenuItem.Size = new Size(189, 22);
+            MSBFDocumentationToolStripMenuItem.Text = "MSBF documentation";
+            MSBFDocumentationToolStripMenuItem.Click += MSBFDocumentationToolStripMenuItem_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -233,5 +257,8 @@
         private ToolStripMenuItem ReloadMSBTToolStripMenuItem;
         private ContextMenuStrip NodeContextMenuStrip;
         private ToolStripMenuItem DeleteNodeToolStripMenuItem;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private ToolStripMenuItem ProgramInstructionsToolStripMenuItem;
+        private ToolStripMenuItem MSBFDocumentationToolStripMenuItem;
     }
 }
